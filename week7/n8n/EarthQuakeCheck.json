@@ -112,8 +112,8 @@
     },
     {
       "parameters": {
-        "fromEmail": "philbartie@gmail.com",
-        "toEmail": "philbartie@gmail.com",
+        "fromEmail": "yoursendGmailhere@example.com",
+        "toEmail": "yourreceiveemailhere@example.com",
         "subject": "USGS Quake Alert",
         "emailFormat": "text",
         "text": "=A large quake just occurred: {{ $json.max_mag }}\n\nThere were {{ $json.count_usgsid }} large quakes recently.\n\nPlace details:\n{{ $json.appended_place }}\n\n",
