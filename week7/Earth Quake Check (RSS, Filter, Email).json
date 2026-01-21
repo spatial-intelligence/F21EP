@@ -1,0 +1,366 @@
+{
+  "name": "Earth Quake Check (RSS, Filter, Email)",
+  "nodes": [
+    {
+      "parameters": {
+        "url": "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_hour.geojson",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -1008,
+        -1088
+      ],
+      "id": "d53dfdec-dc40-40f3-890b-f86fe0fcb7c4",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 20
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -1280,
+        -912
+      ],
+      "id": "e217c159-f7a6-4f04-9786-c73e23cf1e48",
+      "name": "Schedule Trigger",
+      "executeOnce": false
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "cdbf901d-851f-4c08-a9f1-e2f49ddcb2ba",
+              "leftValue": "={{ $json.mag }}",
+              "rightValue": 5,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -384,
+        -1056
+      ],
+      "id": "45d613dd-a735-489e-b7ca-d5bcd196f12a",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "fieldsToSummarize": {
+          "values": [
+            {
+              "aggregation": "max",
+              "field": "mag"
+            },
+            {
+              "field": "usgsid"
+            },
+            {
+              "aggregation": "append",
+              "field": "place"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.summarize",
+      "typeVersion": 1.1,
+      "position": [
+        -144,
+        -1072
+      ],
+      "id": "66ed9f35-07b6-4316-99dd-7ca915f9f553",
+      "name": "Summarize"
+    },
+    {
+      "parameters": {
+        "jsCode": "return $json.features.map(v => ({\n  json: {\n    usgsid: v.id,\n    lng: v.geometry.coordinates[0],\n    lat: v.geometry.coordinates[1],\n    place: v.properties.place,\n    mag: v.properties.mag,\n    tm: v.properties.time,\n    url: v.properties.url\n  }\n}));"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -816,
+        -1104
+      ],
+      "id": "b56cdd2a-3f5c-4b5e-9414-49be9a0b656c",
+      "name": "Code in JavaScript1"
+    },
+    {
+      "parameters": {
+        "fromEmail": "philbartie@gmail.com",
+        "toEmail": "philbartie@gmail.com",
+        "subject": "USGS Quake Alert",
+        "emailFormat": "text",
+        "text": "=A large quake just occurred: {{ $json.max_mag }}\n\nThere were {{ $json.count_usgsid }} large quakes recently.\n\nPlace details:\n{{ $json.appended_place }}\n\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        64,
+        -1056
+      ],
+      "id": "626bbfd3-2ba5-41de-a371-320c889938ca",
+      "name": "Send email",
+      "webhookId": "24f9b694-733e-4973-b0b5-295d5b26e922",
+      "credentials": {
+        "smtp": {
+          "id": "3lly0AEA9UKCVCtB",
+          "name": "SMTP account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "Send email for Mag >=5",
+        "height": 96,
+        "width": 150
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -384,
+        -1184
+      ],
+      "typeVersion": 1,
+      "id": "bc78b099-5678-48f2-b308-35e7c9d6e825",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "select  *\nfrom n8n.usgsquakes\nwhere (extract (epoch from now()) - tm/1000)/3600 < 1\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -848,
+        -800
+      ],
+      "id": "ad015875-91e9-438c-ae44-a8a7e7f38dd0",
+      "name": "Execute a SQL query",
+      "credentials": {
+        "postgres": {
+          "id": "dk4rL2I9DxLJmTNd",
+          "name": "PG pb56"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "combineBySql",
+        "query": "SELECT input1.*\nFROM input1\nLEFT JOIN input2 on input1.usgsid = input2.usgsid\nwhere input2.usgsid is null",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -576,
+        -976
+      ],
+      "id": "9d3d5fdc-dc71-4841-99f0-9f4111c12816",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "content": "check USGS earthquake RSS feed",
+        "height": 80,
+        "width": 150
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -1104,
+        -1232
+      ],
+      "typeVersion": 1,
+      "id": "fa4255ee-9868-4717-9a07-706aa7269ebe",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "get quake IDs already saved to the PG table",
+        "height": 80,
+        "width": 150
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -864,
+        -608
+      ],
+      "typeVersion": 1,
+      "id": "a410958b-cd94-4118-a5f7-06127e6fad90",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "content": "find new quakes not already saved",
+        "height": 96,
+        "width": 150
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -608,
+        -1104
+      ],
+      "typeVersion": 1,
+      "id": "4bb1da9d-29fc-4927-8c1f-96e144bda5fb",
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO n8n.usgsquakes (usgsid,lng,lat,place,tm,url,mag)\nVALUES ('{{ $json.usgsid }}',{{ $json.lng }},{{ $json.lat }}, '{{ $json.place }}',{{ $json.tm }} ,'{{ $json.url }}',{{ $json.mag }} )",
+        "options": {
+          "delayClosingIdleConnection": 2
+        }
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -272,
+        -784
+      ],
+      "id": "afca4dbf-387b-4ba7-b7db-e0ff759e616e",
+      "name": "Execute a SQL query1",
+      "credentials": {
+        "postgres": {
+          "id": "dk4rL2I9DxLJmTNd",
+          "name": "PG pb56"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Execute a SQL query",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Summarize",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "Summarize": {
+      "main": [
+        [
+          {
+            "node": "Send email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript1": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute a SQL query": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Execute a SQL query1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute a SQL query1": {
+      "main": [
+        []
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "versionId": "866a1246-3d60-46b2-af1f-22c4fd316900",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "c29f067fe8483d3686602928b4aa6f7edc1084c52b363990d16e999b9d960b0e"
+  },
+  "id": "xoDwkWm-dcSKP5y9HG4T5",
+  "tags": []
+}
