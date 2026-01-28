@@ -1,0 +1,677 @@
+{
+  "name": "LLM to Mongo",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -1232,
+        -32
+      ],
+      "id": "f5c5bb03-b18f-4646-9c8a-7cc90ff12977",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://ep.timemirror.com:8002/auth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "accept",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "username",
+              "value": "yourLLMusernamehere"
+            },
+            {
+              "name": "password",
+              "value": "yourLLMpasswordhere"
+            },
+            {
+              "name": "text",
+              "value": "=summarise in a maximum of 15 words:  {{ $json.content }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -304,
+        -272
+      ],
+      "id": "d89e5374-5def-411d-b090-5c671b2bc694",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "resource": "table",
+        "operation": "create",
+        "tableName": "jobqueue",
+        "columns": {
+          "column": [
+            {
+              "name": "job_id",
+              "type": "=string"
+            },
+            {
+              "name": "msg"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        -1232,
+        -320
+      ],
+      "id": "913a794a-1634-44b8-9938-7e140313db5c",
+      "name": "Create a data table"
+    },
+    {
+      "parameters": {
+        "dataTableId": {
+          "__rl": true,
+          "value": "BWmH5Pdb9DOiqbPi",
+          "mode": "list",
+          "cachedResultName": "jobqueue",
+          "cachedResultUrl": "/projects/EHze8EPN6yJC7F6q/datatables/BWmH5Pdb9DOiqbPi"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "job_id": "={{ $json.job_id }}",
+            "msg": "={{ $json.content }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "job_id",
+              "displayName": "job_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "msg",
+              "displayName": "msg",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        144,
+        -48
+      ],
+      "id": "5aa6a834-4fc7-4863-8407-1042ffa4b219",
+      "name": "Insert row"
+    },
+    {
+      "parameters": {
+        "operation": "insert",
+        "collection": "n8n_llm",
+        "fields": "=job_id, msg,result",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        1040,
+        208
+      ],
+      "id": "4b7be3d9-a533-4ddf-b4da-740f9a27f2a5",
+      "name": "Insert documents",
+      "credentials": {
+        "mongoDb": {
+          "id": "Qfs3pOSdtJ8Qc35Z",
+          "name": "MongoDB account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "amount": 20
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        368,
+        -48
+      ],
+      "id": "f7fba6a9-e1f2-4631-ae1f-8838cd446432",
+      "name": "Wait",
+      "webhookId": "17fd8df9-63d8-498e-b7ae-18de1fbee4f3"
+    },
+    {
+      "parameters": {
+        "content": "https://krebsonsecurity.com/feed/ \n\nhttps://www.bleepingcomputer.com/feed/",
+        "height": 96,
+        "width": 352
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -896,
+        -176
+      ],
+      "id": "746ae2ff-aae5-4c05-9b27-b9b5d83c6ae9",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "url": "https://krebsonsecurity.com/feed/",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1.2,
+      "position": [
+        -736,
+        -32
+      ],
+      "id": "45bb7b5e-5f22-489f-9d9e-c98b6081428b",
+      "name": "RSS Read",
+      "executeOnce": true
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -96,
+        -32
+      ],
+      "id": "fd83bd36-7096-42e9-9033-f9780b1f6249",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "amount": 10
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        192,
+        512
+      ],
+      "id": "f036aa17-6e55-41f1-b33c-c3269395ff3c",
+      "name": "Wait1",
+      "webhookId": "b6efd2c8-2f0b-4227-b0e8-c059c4a9d5fa",
+      "executeOnce": true,
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "operation": "deleteRows",
+        "dataTableId": {
+          "__rl": true,
+          "value": "BWmH5Pdb9DOiqbPi",
+          "mode": "list",
+          "cachedResultName": "jobqueue",
+          "cachedResultUrl": "/projects/EHze8EPN6yJC7F6q/datatables/BWmH5Pdb9DOiqbPi"
+        },
+        "filters": {
+          "conditions": [
+            {
+              "condition": "isNotEmpty"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        -976,
+        -32
+      ],
+      "id": "0f9262b9-a202-4760-aab8-e86d67f8d797",
+      "name": "Delete row(s)",
+      "alwaysOutputData": false,
+      "executeOnce": true
+    },
+    {
+      "parameters": {
+        "maxItems": 10
+      },
+      "type": "n8n-nodes-base.limit",
+      "typeVersion": 1,
+      "position": [
+        -528,
+        -32
+      ],
+      "id": "eedadf4d-86ca-4393-9553-b235840c20a8",
+      "name": "Limit"
+    },
+    {
+      "parameters": {
+        "content": "Check LLM Processing Queue\n\nhttp://ep.timemirror.com:8002/docs#/default/get_queue_status_queue_status_get",
+        "height": 80,
+        "width": 624
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -1680,
+        368
+      ],
+      "id": "d995c29d-f53d-449f-9d06-0b72129e45ec",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "value": "BWmH5Pdb9DOiqbPi",
+          "mode": "list",
+          "cachedResultName": "jobqueue",
+          "cachedResultUrl": "/projects/EHze8EPN6yJC7F6q/datatables/BWmH5Pdb9DOiqbPi"
+        }
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        -848,
+        416
+      ],
+      "id": "94251118-e425-4da7-8603-f309a4ef3e7e",
+      "name": "Get row(s)1",
+      "executeOnce": true
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "value": "BWmH5Pdb9DOiqbPi",
+          "mode": "list",
+          "cachedResultName": "jobqueue",
+          "cachedResultUrl": "/projects/EHze8EPN6yJC7F6q/datatables/BWmH5Pdb9DOiqbPi"
+        }
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        256,
+        224
+      ],
+      "id": "70f31b42-a608-4775-88e9-8183c4d1de58",
+      "name": "Get row(s)"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "1d6d7d6f-7e5a-4d71-a64f-5d7af2c16501",
+              "leftValue": "={{ $json.appended_status }}",
+              "rightValue": "pending",
+              "operator": {
+                "type": "array",
+                "operation": "contains",
+                "rightType": "any"
+              }
+            },
+            {
+              "id": "f6d73f18-f086-48a8-80af-b26ed64ab6c2",
+              "leftValue": "={{ $json.appended_status }}",
+              "rightValue": "running",
+              "operator": {
+                "type": "array",
+                "operation": "contains",
+                "rightType": "any"
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -64,
+        416
+      ],
+      "id": "24d7c190-6e30-48e0-b33b-23b05bb33ff9",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "fieldsToSummarize": {
+          "values": [
+            {
+              "aggregation": "append",
+              "field": "status"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.summarize",
+      "typeVersion": 1.1,
+      "position": [
+        -256,
+        416
+      ],
+      "id": "56864ef5-0997-49ff-ad4c-bce69563c3da",
+      "name": "Summarize"
+    },
+    {
+      "parameters": {
+        "url": "=http://ep.timemirror.com:8002/result/{{ $json.job_id }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "accept",
+              "value": "application/json"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -560,
+        416
+      ],
+      "id": "466bf23b-8ddf-47a9-b501-90afa7ab11a7",
+      "name": "HTTP Check Processing Status"
+    },
+    {
+      "parameters": {
+        "url": "=http://ep.timemirror.com:8002/result/{{ $json.job_id }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "accept",
+              "value": "application/json"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        576,
+        368
+      ],
+      "id": "ea93a40b-4822-484c-aeec-13808181d730",
+      "name": "HTTP Get results"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "fieldsToMatchString": "job_id",
+        "joinMode": "keepEverything",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        816,
+        208
+      ],
+      "id": "2b43f2f0-ec37-4bc7-ab8f-946572028e5b",
+      "name": "Merge the results with original content"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Delete row(s)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create a data table": {
+      "main": [
+        []
+      ]
+    },
+    "Insert row": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Insert documents": {
+      "main": [
+        []
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "Get row(s)1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "RSS Read": {
+      "main": [
+        [
+          {
+            "node": "Limit",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Insert row",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait1": {
+      "main": [
+        [
+          {
+            "node": "Get row(s)1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Delete row(s)": {
+      "main": [
+        [
+          {
+            "node": "RSS Read",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Limit": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Get row(s)1": {
+      "main": [
+        [
+          {
+            "node": "HTTP Check Processing Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s)": {
+      "main": [
+        [
+          {
+            "node": "HTTP Get results",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge the results with original content",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Wait1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Get row(s)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Summarize": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Check Processing Status": {
+      "main": [
+        [
+          {
+            "node": "Summarize",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Get results": {
+      "main": [
+        [
+          {
+            "node": "Merge the results with original content",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge the results with original content": {
+      "main": [
+        [
+          {
+            "node": "Insert documents",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "versionId": "d1f9a595-0818-4212-bf3f-e5cf072d0169",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "c29f067fe8483d3686602928b4aa6f7edc1084c52b363990d16e999b9d960b0e"
+  },
+  "id": "3oXxIhJ1V--oTyaRix7xy",
+  "tags": []
+}
