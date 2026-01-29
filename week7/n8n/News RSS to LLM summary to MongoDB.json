@@ -57,7 +57,7 @@
       "parameters": {
         "resource": "table",
         "operation": "create",
-        "tableName": "jobqueue",
+        "tableName": "createyourtablewithyourusername",
         "columns": {
           "column": [
             {
@@ -85,9 +85,7 @@
         "dataTableId": {
           "__rl": true,
           "value": "BWmH5Pdb9DOiqbPi",
-          "mode": "list",
-          "cachedResultName": "jobqueue",
-          "cachedResultUrl": "/projects/EHze8EPN6yJC7F6q/datatables/BWmH5Pdb9DOiqbPi"
+          "mode": "list"
         },
         "columns": {
           "mappingMode": "defineBelow",
@@ -235,9 +233,7 @@
         "dataTableId": {
           "__rl": true,
           "value": "BWmH5Pdb9DOiqbPi",
-          "mode": "list",
-          "cachedResultName": "jobqueue",
-          "cachedResultUrl": "/projects/EHze8EPN6yJC7F6q/datatables/BWmH5Pdb9DOiqbPi"
+          "mode": "list"
         },
         "filters": {
           "conditions": [
@@ -293,9 +289,7 @@
         "dataTableId": {
           "__rl": true,
           "value": "BWmH5Pdb9DOiqbPi",
-          "mode": "list",
-          "cachedResultName": "jobqueue",
-          "cachedResultUrl": "/projects/EHze8EPN6yJC7F6q/datatables/BWmH5Pdb9DOiqbPi"
+          "mode": "list"
         }
       },
       "type": "n8n-nodes-base.dataTable",
@@ -314,9 +308,7 @@
         "dataTableId": {
           "__rl": true,
           "value": "BWmH5Pdb9DOiqbPi",
-          "mode": "list",
-          "cachedResultName": "jobqueue",
-          "cachedResultUrl": "/projects/EHze8EPN6yJC7F6q/datatables/BWmH5Pdb9DOiqbPi"
+          "mode": "list"
         }
       },
       "type": "n8n-nodes-base.dataTable",
