@@ -1,0 +1,161 @@
+{
+  "name": "IMDB random sample - summary email",
+  "nodes": [
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT m.movieid,title,year,rank::float,votes\nFROM imdb.movies m TABLESAMPLE BERNOULLI (10) \nJOIN imdb.ratings r ON r.movieid = m.movieid\nORDER BY m.movieid\nLIMIT 100;\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        80,
+        -16
+      ],
+      "id": "45d768bc-1eb1-43ce-a097-c59b57d26a73",
+      "name": "Postgres",
+      "alwaysOutputData": false,
+      "credentials": {
+        "postgres": {
+          "id": "Rv6AtTnRH2YdBp4n",
+          "name": "PGdatahub"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -256,
+        -16
+      ],
+      "id": "95f49a5c-d18f-480f-8f65-330b5a75951a",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "fieldsToSummarize": {
+          "values": [
+            {
+              "aggregation": "max",
+              "field": "rank"
+            },
+            {
+              "aggregation": "countUnique",
+              "field": "year"
+            },
+            {
+              "aggregation": "sum",
+              "field": "votes"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.summarize",
+      "typeVersion": 1.1,
+      "position": [
+        288,
+        -16
+      ],
+      "id": "b496c04e-9202-4e51-ae45-d31420c0cf24",
+      "name": "Summarize"
+    },
+    {
+      "parameters": {
+        "fromEmail": "philbartie@gmail.com",
+        "toEmail": "philbartie@gmail.com",
+        "subject": "IMDB test from N8N",
+        "emailFormat": "text",
+        "text": "=IMDB results:\nhighest rank: {{ $json.max_rank }}\nfrom {{ $json.unique_count_year }} years\ntotal votes = {{ $json.sum_votes }} ",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        496,
+        -16
+      ],
+      "id": "d575a4d2-e4e0-4236-860f-cad163c5c38f",
+      "name": "Send email",
+      "webhookId": "897f57f6-51fc-4255-bc51-c5c02e551d78",
+      "credentials": {
+        "smtp": {
+          "id": "hMUomoEyDMEtNEwi",
+          "name": "SMTP account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Postgres",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Postgres": {
+      "main": [
+        [
+          {
+            "node": "Summarize",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Summarize": {
+      "main": [
+        [
+          {
+            "node": "Send email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "versionId": "21a52092-390c-422e-8915-6e67cd0cf5ca",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "c29f067fe8483d3686602928b4aa6f7edc1084c52b363990d16e999b9d960b0e"
+  },
+  "id": "mKdlKnlIeGJAISPS",
+  "tags": [
+    {
+      "updatedAt": "2026-01-23T19:00:08.605Z",
+      "createdAt": "2026-01-23T19:00:08.605Z",
+      "id": "ScbwpzOxuwhHkG1K",
+      "name": "JSON"
+    },
+    {
+      "updatedAt": "2026-01-23T19:00:08.588Z",
+      "createdAt": "2026-01-23T19:00:08.588Z",
+      "id": "joyIPtw7pr1Orjo4",
+      "name": "Postgres"
+    }
+  ]
+}
