@@ -73,8 +73,8 @@
     },
     {
       "parameters": {
-        "fromEmail": "philbartie@gmail.com",
-        "toEmail": "philbartie@gmail.com",
+        "fromEmail": "setthisup@gmail.com",
+        "toEmail": "setthisup@gmail.com",
         "subject": "IMDB test from N8N",
         "emailFormat": "text",
         "text": "=IMDB results:\nhighest rank: {{ $json.max_rank }}\nfrom {{ $json.unique_count_year }} years\ntotal votes = {{ $json.sum_votes }} ",
